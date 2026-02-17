@@ -123,7 +123,9 @@ const renderProducts = (products) => {
 
         <!-- Buttons -->
         <div class="flex gap-2 mt-auto pt-2">
-          <button class="flex-1 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+          <button
+          onclick="openModal(${product.id})"
+          class="flex-1 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-50 transition cursor-pointer">
             <i class="fa-regular fa-eye"></i> Details
           </button>
 <button
@@ -181,7 +183,9 @@ const loadTrendingProducts = async () => {
 
         <!-- Buttons -->
         <div class="flex gap-2 mt-auto pt-2">
-          <button class="flex-1 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+          <button
+          onclick="openModal(${product.id})"
+          class="flex-1 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-50 transition cursor-pointer">
             <i class="fa-regular fa-eye"></i> Details
           </button>
           <button
@@ -228,6 +232,42 @@ const toggleCart = (id, btn) => {
 
   updateCartCount();
 };
+
+// Modal for cart details
+const openModal = async (id) => {
+  const res = await fetch(`https://fakestoreapi.com/products/${id}`);
+  const p = await res.json();
+
+  document.getElementById("modal-image").src = p.image;
+  document.getElementById("modal-category").textContent = p.category;
+  document.getElementById("modal-title").textContent = p.title;
+  document.getElementById("modal-price").textContent = `$${p.price}`;
+  document.getElementById("modal-rating").textContent = `${p.rating.rate} (${p.rating.count} reviews)`;
+  document.getElementById("modal-description").textContent = p.description;
+
+  const btn = document.getElementById("modal-cart-btn");
+  const inCart = getCart().find((i) => i.id === p.id);
+  if (inCart) {
+    btn.innerHTML = '<i class="fa-solid fa-trash"></i> Remove';
+    btn.className = "flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm py-3 rounded-lg transition cursor-pointer";
+  } else {
+    btn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> Add to Cart';
+    btn.className = "flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-3 rounded-lg transition cursor-pointer";
+  }
+  btn.onclick = () => {
+    toggleCart(p.id, btn);
+  };
+
+  document.getElementById("product-modal").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+};
+
+const closeModal = () => {
+  document.getElementById("product-modal").classList.add("hidden");
+  document.body.style.overflow = "";
+};
+
+
 
 document.addEventListener("DOMContentLoaded", async () => {
   setActiveNav();
