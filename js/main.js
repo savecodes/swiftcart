@@ -126,9 +126,12 @@ const renderProducts = (products) => {
           <button class="flex-1 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-50 transition cursor-pointer">
             <i class="fa-regular fa-eye"></i> Details
           </button>
-          <button class="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white text-sm py-2 rounded-lg hover:bg-indigo-700 transition cursor-pointer">
-            <i class="fa-solid fa-cart-shopping"></i> Add
-          </button>
+<button
+  onclick="toggleCart(${product.id}, this)"
+  class="flex-1 flex items-center justify-center gap-2 ${getCart().find((i) => i.id === product.id) ? "bg-red-500 hover:bg-red-600" : "bg-indigo-600 hover:bg-indigo-700"} text-white text-sm py-2 rounded-lg transition cursor-pointer">
+  <i class="fa-solid fa-${getCart().find((i) => i.id === product.id) ? "trash" : "cart-shopping"}"></i>
+  ${getCart().find((i) => i.id === product.id) ? "Remove" : "Add"}
+</button>
         </div>
       </div>
     </div>
@@ -181,9 +184,12 @@ const loadTrendingProducts = async () => {
           <button class="flex-1 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-50 transition cursor-pointer">
             <i class="fa-regular fa-eye"></i> Details
           </button>
-          <button class="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white text-sm py-2 rounded-lg hover:bg-indigo-700 transition cursor-pointer">
-            <i class="fa-solid fa-cart-shopping"></i> Add
-          </button>
+          <button
+  onclick="toggleCart(${product.id}, this)"
+  class="flex-1 flex items-center justify-center gap-2 ${getCart().find((i) => i.id === product.id) ? "bg-red-500 hover:bg-red-600" : "bg-indigo-600 hover:bg-indigo-700"} text-white text-sm py-2 rounded-lg transition cursor-pointer">
+  <i class="fa-solid fa-${getCart().find((i) => i.id === product.id) ? "trash" : "cart-shopping"}"></i>
+  ${getCart().find((i) => i.id === product.id) ? "Remove" : "Add"}
+</button>
         </div>
       </div>
     </div>
@@ -192,9 +198,47 @@ const loadTrendingProducts = async () => {
     .join("");
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+// Cart functions for localStorage
+const getCart = () => JSON.parse(localStorage.getItem("cart")) || [];
+const saveCart = (cart) => localStorage.setItem("cart", JSON.stringify(cart));
+
+// Cart count update
+const updateCartCount = () => {
+  const total = getCart().reduce((sum, item) => sum + item.quantity, 0);
+  document.getElementById("cart-count").textContent = total;
+};
+
+const toggleCart = (id, btn) => {
+  const cart = getCart();
+  const existing = cart.find((item) => item.id === id);
+
+  if (existing) {
+    const updated = cart.filter((item) => item.id !== id);
+    saveCart(updated);
+    btn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> Add';
+    btn.classList.remove("bg-red-500", "hover:bg-red-600");
+    btn.classList.add("bg-indigo-600", "hover:bg-indigo-700");
+  } else {
+    cart.push({ id, quantity: 1 });
+    saveCart(cart);
+    btn.innerHTML = '<i class="fa-solid fa-trash"></i> Remove';
+    btn.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+    btn.classList.add("bg-red-500", "hover:bg-red-600");
+  }
+
+  updateCartCount();
+};
+
+document.addEventListener("DOMContentLoaded", async () => {
   setActiveNav();
-  category();
-  loadAllProducts();
-  loadTrendingProducts();
+  updateCartCount();
+  if (document.getElementById("category-list")) {
+    await category();
+    await loadAllProducts();
+  }
+
+  if (document.getElementById("top-products")) {
+    await loadTrendingProducts();
+  }
+  document.getElementById("spinner").style.display = "none";
 });
